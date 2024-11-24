@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket 示例</title>
+</head>
+<body>
+    <h1>WebSocket 测试页面</h1>
+    <button id="connectButton">连接服务器</button>
+    <button id="sendMessageButton" disabled>发送消息</button>
+    <div id="log" style="margin-top: 20px; border: 1px solid #ccc; padding: 10px; width: 80%; height: 200px; overflow-y: auto;">
+        <p>日志输出：</p>
+    </div>
+
+    <script>
+        let ws;
+
+        // 日志输出函数
+        function logMessage(message) {
+            const logDiv = document.getElementById('log');
+            const p = document.createElement('p');
+            p.textContent = message;
+            logDiv.appendChild(p);
+            logDiv.scrollTop = logDiv.scrollHeight; // 自动滚动到底部
+        }
+
+        // 连接服务器
+        document.getElementById('connectButton').addEventListener('click', () => {
+            ws = new WebSocket("ws://localhost:8080/ws");
+
+            ws.onopen = () => {
+                logMessage("连接已建立");
+                document.getElementById('sendMessageButton').disabled = false; // 启用发送按钮
+            };
+
+            ws.onmessage = (event) => {
+                logMessage("收到服务器消息: " + event.data);
+            };
+
+            ws.onclose = () => {
+                logMessage("连接已关闭");
+                document.getElementById('sendMessageButton').disabled = true; // 禁用发送按钮
+            };
+
+            ws.onerror = (error) => {
+                logMessage("连接发生错误: " + error);
+            };
+        });
+
+        // 发送 JSON 消息
+        document.getElementById('sendMessageButton').addEventListener('click', () => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                const message = {
+                    type: "greeting",
+                    content: "你好，服务器！"
+                };
+                ws.send(JSON.stringify(message));
+                logMessage("发送消息: " + JSON.stringify(message));
+            } else {
+                logMessage("连接未打开，无法发送消息");
+            }
+        });
+    </script>
+</body>
+</html>
